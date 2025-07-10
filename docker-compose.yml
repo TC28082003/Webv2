@@ -1,0 +1,47 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # Service Backend (Node.js)
+  backend:
+    build: ./backend
+    container_name: my_project_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - app_network
+
+  # Service Prediction (Python/Flask)
+  prediction_service:
+    build: ./prediction_service
+    container_name: my_project_prediction
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  # Service Frontend (Nginx)
+  frontend:
+    build: ./frontend
+    container_name: my_project_frontend
+    restart: unless-stopped
+    ports:
+      # http://localhost:8080
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    networks:
+      - app_network
+    depends_on:
+      - backend
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
