@@ -22,14 +22,30 @@ const interactivePredictionRoutes = require('./routes/interactivePrediction');
 const app = express();
 const port = process.env.PORT || 3001;
 
-
+const allowedOrigins = [
+  'http://localhost:8080', // Cho phép khi bạn chạy frontend trên máy
+  'http://127.0.0.1:8080', // Một dạng khác của localhost
+  process.env.FRONTEND_URL    // URL của frontend trên Render
+];
 const corsOptions = {
-     origin: '*',
-     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-     credentials: true,
+  origin: function (origin, callback) {
+    // Nếu không có origin (ví dụ: request từ Postman), hoặc origin nằm trong danh sách cho phép
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
 };
-app.use(cors(corsOptions));
 
+// Kích hoạt CORS preflight cho tất cả các route
+app.options('*', cors(corsOptions)); 
+
+// Sử dụng middleware CORS cho tất cả các request
+app.use(cors(corsOptions));
+// --- END: Cấu hình CORS cho Production ---
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
