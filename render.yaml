@@ -45,7 +45,7 @@ services:
 
   # --- Job khởi tạo Database ---
   - name: db-init-job
-    type: job # Job là loại đúng cho tác vụ chạy một lần
+    type: worker # Job là loại đúng cho tác vụ chạy một lần
     # Chúng ta cần chỉ định một môi trường có psql
     # Môi trường 'image' với postgres là một lựa chọn
     image:
