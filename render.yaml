@@ -1,56 +1,44 @@
-# render.yaml (Corrected Version 2)
+# render.yaml (Final Corrected Version - Alternative Structure)
 
-# Khai báo các dịch vụ sẽ được tạo
+# Khai báo các dịch vụ (backend) sẽ được tạo
 services:
   # --- Dịch vụ Backend Node.js ---
   - name: backend-node
     type: web
     env: node
     plan: free
-    rootDir: ./backend # Giả sử code Node.js của bạn ở thư mục 'backend'
+    rootDir: ./backend
     buildCommand: "npm install"
     startCommand: "node server.js"
     envVars:
       - key: DB_HOST
-        fromDatabase:
-          name: mysql-db # Tên của database service bên dưới
-          property: host
+        fromDatabase: { name: mysql-db, property: host }
       - key: DB_USER
-        fromDatabase:
-          name: mysql-db
-          property: user
+        fromDatabase: { name: mysql-db, property: user }
       - key: DB_PASSWORD
-        fromDatabase:
-          name: mysql-db
-          property: password
+        fromDatabase: { name: mysql-db, property: password }
       - key: DB_DATABASE
-        fromDatabase:
-          name: mysql-db
-          property: database
+        fromDatabase: { name: mysql-db, property: database }
       - key: JWT_SECRET
         generateValue: true
-      # PORT được Render tự động gán, không cần đặt cứng
 
   # --- Dịch vụ Backend Python ---
   - name: backend-python
     type: web
     env: docker
     plan: free
-    rootDir: ./prediction_service # Giả sử code Python của bạn ở thư mục 'prediction_service'
-    dockerfilePath: ./Dockerfile # Đường dẫn đến Dockerfile của Python service
+    rootDir: ./prediction_service
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /
-    # PORT được Render tự động gán, không cần đặt cứng
 
-  # --- Dịch vụ Frontend ---
+# Khai báo các Static Sites
+staticSites:
   - name: frontend
-    type: static # 'type: static' là đúng
-    rootDir: ./frontend # Giả sử code frontend của bạn ở thư mục 'frontend'
+    rootDir: ./frontend
     routes:
       - type: rewrite
         source: /api/:path*
         destination: ${backend-node.url}/api/:path*
-    # `staticPublishPath` không cần thiết nếu rootDir là thư mục publish
-    # `buildCommand` không cần thiết nếu không có bước build
 
 # Khai báo cơ sở dữ liệu
 databases:
