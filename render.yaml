@@ -1,55 +1,46 @@
-# render.yaml (Final Version for your exact file structure)
+# render.yaml (Corrected Syntax and Logic)
+
 databases:
-  - name: mysql-db
-    databaseName: navigation_app_db
-    user: db_user
+  - name: postgres-db # Sử dụng một tên nhất quán và rõ ràng
     plan: free
-    
+    # databaseName và user có thể bỏ qua, Render sẽ tự tạo và inject
+
 services:
   # --- Dịch vụ Frontend (Static Site) ---
   - name: frontend
     type: web
     env: static
-    # rootDir trỏ đến thư mục chứa các file HTML, CSS của bạn
-    rootDir: ./frontend 
-    # Vì không có bước build, chúng ta chỉ cần một lệnh vô hại
-    buildCommand: "echo 'Static site, no build step needed.'"
-    # Render sẽ phục vụ các file trực tiếp từ thư mục `rootDir`
-    staticPublishPath: . 
+    rootDir: ./frontend
+    buildCommand: "echo 'Static site, no build needed.'"
+    staticPublishPath: .
     routes:
       - type: rewrite
         source: /api/:path*
         destination: ${backend-node.url}/api/:path*
 
- # --- Dịch vụ Backend Node.js ---
+  # --- Dịch vụ Backend Node.js ---
   - name: backend-node
     type: web
     env: node
     plan: free
     rootDir: ./backend
-    buildCommand: npm install
-    startCommand: node server.js
+    buildCommand: "npm install"
+    startCommand: "node server.js"
     envVars:
-      # Chỉ cần một biến này là đủ cho PostgreSQL
       - key: DATABASE_URL
         fromDatabase:
-          name: mysql-db # Tên của database service
+          name: postgres-db # Tên phải khớp với khối 'databases'
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
-        
- - name: db-init-job
-    type: job # Loại dịch vụ là job
-    rootDir: ./backend # Sử dụng cùng thư mục với backend
-    # Lệnh để chạy file init.sql
-    startCommand: "psql $DATABASE_URL -f init.sql"
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: postgres-db
-          property: connectionString
+      # Thêm FRONTEND_URL để xử lý CORS
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: frontend
+          property: url
 
- # --- Dịch vụ Backend Python (Docker) ---
+  # --- Dịch vụ Backend Python ---
   - name: backend-python
     type: web
     env: docker
@@ -57,3 +48,14 @@ services:
     rootDir: ./prediction_service
     dockerfilePath: ./Dockerfile
     healthCheckPath: /
+
+  # --- Job khởi tạo Database ---
+  - name: db-init-job
+    type: job # Phải ngang hàng với các services khác
+    rootDir: ./backend
+    startCommand: "psql $DATABASE_URL -f init.sql"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres-db # Tên phải khớp với khối 'databases'
+          property: connectionString
