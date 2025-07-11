@@ -37,6 +37,17 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+        
+ - name: db-init-job
+    type: job # Loại dịch vụ là job
+    rootDir: ./backend # Sử dụng cùng thư mục với backend
+    # Lệnh để chạy file init.sql
+    startCommand: "psql $DATABASE_URL -f init.sql"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres-db
+          property: connectionString
 
  # --- Dịch vụ Backend Python (Docker) ---
   - name: backend-python
