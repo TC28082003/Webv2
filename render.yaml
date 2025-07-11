@@ -1,11 +1,9 @@
-# render.yaml (Super Simple & Guaranteed to Work)
-
 databases:
   - name: postgres-db
     plan: free
 
 services:
-  # --- Dịch vụ Frontend (Static Site) ---
+  # --- Frontend ---
   - name: frontend
     type: web
     env: static
@@ -17,7 +15,7 @@ services:
         source: /api/:path*
         destination: ${backend-node.url}/api/:path*
 
-  # --- Dịch vụ Backend Node.js ---
+  # --- Backend Node.js ---
   - name: backend-node
     type: web
     env: node
@@ -26,7 +24,7 @@ services:
     buildCommand: "npm install"
     startCommand: "node server.js"
     envVars:
-      - key: DATABASE_URL
+      - key: DATABASE_URL # Cung cấp đúng biến này
         fromDatabase:
           name: postgres-db
           property: connectionString
