@@ -1,13 +1,16 @@
-# render.yaml (Final Final Version)
+# render.yaml (Final Version for your exact file structure)
 
 services:
   # --- Dịch vụ Frontend (Static Site) ---
   - name: frontend
     type: web
     env: static
-    rootDir: ./frontend
-    buildCommand: npm run build  # or whatever your static site build command is
-    staticPublishPath: dist      # change to your actual build output folder (e.g., build, dist)
+    # rootDir trỏ đến thư mục chứa các file HTML, CSS của bạn
+    rootDir: ./frontend 
+    # Vì không có bước build, chúng ta chỉ cần một lệnh vô hại
+    buildCommand: "echo 'Static site, no build step needed.'"
+    # Render sẽ phục vụ các file trực tiếp từ thư mục `rootDir`
+    staticPublishPath: . 
     routes:
       - type: rewrite
         source: /api/:path*
