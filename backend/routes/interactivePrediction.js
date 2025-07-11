@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Python service for interactive prediction
-const PREDICTION_SERVICE_URL = 'http://prediction_service:5001/predict_single';
+const PREDICTION_SERVICE_URL = `${process.env.PYTHON_SERVICE_URL || 'http://localhost:5001'}/predict`; 
 
 router.post('/', authenticateToken, async (req, res) => {
     const { data_transform, target_column, best_features, user_input } = req.body;
