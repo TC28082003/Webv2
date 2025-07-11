@@ -29,23 +29,12 @@ services:
     rootDir: ./backend
     buildCommand: npm install
     startCommand: node server.js
-    envVars:
-      - key: DB_HOST
+ envVars:
+      # Chỉ cần một biến này là đủ cho PostgreSQL
+      - key: DATABASE_URL
         fromDatabase:
-          name: mysql-db
-          property: host
-      - key: DB_USER
-        fromDatabase:
-          name: mysql-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: mysql-db
-          property: password
-      - key: DB_DATABASE
-        fromDatabase:
-          name: mysql-db
-          property: database
+          name: mysql-db # Tên của database service
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
 
