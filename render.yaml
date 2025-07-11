@@ -2,10 +2,12 @@
 
 services:
   # --- Dịch vụ Frontend (Static Site) ---
-  # Đặt lên đầu tiên để dễ theo dõi
   - name: frontend
-    type: static # Đây là cú pháp đúng
+    type: web
+    env: static
     rootDir: ./frontend
+    buildCommand: npm run build  # or whatever your static site build command is
+    staticPublishPath: dist      # change to your actual build output folder (e.g., build, dist)
     routes:
       - type: rewrite
         source: /api/:path*
