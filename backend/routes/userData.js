@@ -6,43 +6,29 @@ const authenticateToken = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Helper này không còn cần thiết vì 'pg' tự động parse JSON
-function safeJsonParse(dbValue, defaultValue = {}) {
-    if (typeof dbValue === 'object' && dbValue !== null) return dbValue;
-    return defaultValue;
-}
-
 // --- GET User Profile Data ---
 router.get('/profile', authenticateToken, async (req, res) => {
     const userId = req.userId;
     console.log(`Fetching profile data for user ID: ${userId}`);
 
     try {
-        // PostgreSQL trả về kiểu JSON trực tiếp, không cần parse
+        // PostgreSQL trả về kiểu JSONB trực tiếp, không cần parse
         const { rows } = await pool.query('SELECT * FROM user_data WHERE user_id = $1', [userId]);
 
         if (rows.length === 0) {
-            console.warn(`No user_data record found for user ID: ${userId}. Returning empty default.`);
-            return res.json({
-                savedProfiles: {},
-                savedprofilesparent: {},
-                lastVisitedProfile: '',
-                virtualProfiles: {},
-                virtualProfilesData: {}
-            });
+            return res.status(404).json({ message: `No data found for user ID: ${userId}`});
         }
 
         const userData = rows[0];
 
-        const profileData = {
+        // Trả về dữ liệu, nếu một trường là null, trả về object rỗng
+        res.json({
             savedProfiles: userData.saved_profiles || {},
             savedprofilesparent: userData.saved_profiles_parent || {},
             lastVisitedProfile: userData.last_visited_profile || '',
             virtualProfiles: userData.virtual_profiles || {},
             virtualProfilesData: userData.virtual_profiles_data || {}
-        };
-
-        res.json(profileData);
+        });
 
     } catch (error) {
         console.error(`Error fetching profile data for user ${userId}:`, error);
@@ -70,7 +56,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
      }
 
     try {
-        // Cú pháp INSERT ... ON CONFLICT của PostgreSQL
+        // Cú pháp INSERT ... ON CONFLICT của PostgreSQL (UPSERT)
         const sql = `
             INSERT INTO user_data (
                 user_id, saved_profiles, saved_profiles_parent,
@@ -87,7 +73,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
 
         const values = [
             userId,
-            savedProfiles || {}, // Gửi object, PostgreSQL sẽ tự xử lý
+            savedProfiles || {},
             savedprofilesparent || {},
             lastVisitedProfile || '',
             virtualProfiles || {},
