@@ -2,28 +2,35 @@
 
 const { Pool } = require('pg');
 
-// Tạo một pool kết nối mới. 
-// Thư viện 'pg' sẽ tự động sử dụng các biến môi trường nếu chúng được đặt tên theo chuẩn 
-// (PGHOST, PGUSER, PGPASSWORD, PGDATABASE), nhưng để chắc chắn, chúng ta sẽ chỉ định rõ.
+// Kiểm tra xem biến môi trường DATABASE_URL có được cung cấp bởi Render không.
+if (!process.env.DATABASE_URL) {
+  // Lỗi này sẽ làm server crash, giúp bạn biết ngay vấn đề nằm ở biến môi trường.
+  throw new Error('FATAL ERROR: DATABASE_URL environment variable is not set.');
+}
+
+// Tạo pool kết nối. Thư viện 'pg' tự động xử lý kết nối SSL khi
+// connectionString được cung cấp, điều này là bắt buộc trên Render.
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // Render cung cấp biến này
+  connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false // Bắt buộc cho các kết nối đến Render DB
+    // Render yêu cầu SSL nhưng không cần xác thực chứng chỉ từ client.
+    rejectUnauthorized: false
   }
 });
 
-// Kiểm tra kết nối
-pool.connect((err, client, release) => {
-  if (err) {
-    return console.error('!!! Error acquiring client for PostgreSQL !!!', err.stack);
-  }
-  client.query('SELECT NOW()', (err, result) => {
-    release(); // Luôn giải phóng client
-    if (err) {
-      return console.error('!!! Error executing query on PostgreSQL !!!', err.stack);
-    }
-    console.log('✅ Successfully connected to PostgreSQL database. Server time:', result.rows[0].now);
-  });
+// Thêm một listener để bắt lỗi kết nối trên toàn bộ pool
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
 });
+
+// Test kết nối khi ứng dụng khởi động
+pool.query('SELECT NOW()')
+  .then(res => {
+    console.log('✅ Successfully connected to PostgreSQL. Server time:', res.rows[0].now);
+  })
+  .catch(err => {
+    console.error('!!! Initial connection to PostgreSQL failed !!!', err.stack);
+  });
 
 module.exports = pool;
