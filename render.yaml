@@ -1,0 +1,71 @@
+# render.yaml
+services:
+  # 1. Dịch vụ cơ sở dữ liệu MySQL
+  - name: mysql-db
+    type: pserv # Private Service - Dịch vụ riêng tư
+    image:
+      url: mysql:8.0
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true # Render sẽ tự tạo mật khẩu an toàn
+      - key: MYSQL_DATABASE
+        value: navigation_app_db # Tên database của bạn
+
+  # 2. Dịch vụ Backend Node.js
+  - name: backend-node
+    type: web # Web Service - Dịch vụ web có thể truy cập từ bên ngoài
+    env: node
+    plan: free # Sử dụng gói miễn phí
+    # Giả sử code Node.js nằm trong thư mục 'backend'
+    rootDir: ./backend
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    envVars:
+      - key: DB_HOST
+        fromService:
+          type: pserv
+          name: mysql-db
+          property: host # Lấy host của dịch vụ MySQL
+      - key: DB_USER
+        value: root
+      - key: DB_PASSWORD
+        fromService:
+          type: pserv
+          name: mysql-db
+          property: password # Lấy mật khẩu của dịch vụ MySQL
+      - key: DB_DATABASE
+        fromService:
+          type: pserv
+          name: mysql-db
+          property: database # Lấy tên DB của dịch vụ MySQL
+      - key: JWT_SECRET
+        generateValue: true # Render tự tạo chuỗi bí mật cho JWT
+      - key: PORT
+        value: 3001
+
+  # 3. Dịch vụ Backend Python (Prediction)
+  - name: backend-python
+    type: web
+    env: docker
+    plan: free
+    # Giả sử code Python nằm trong thư mục 'prediction_service'
+    rootDir: ./prediction_service
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: / # Render sẽ kiểm tra xem dịch vụ có hoạt động không
+    envVars:
+      - key: PORT
+        value: 5001
+
+  # 4. Dịch vụ Frontend (Static Site)
+  - name: frontend
+    type: static
+    plan: free
+    # Giả sử các file frontend (html, css, js) nằm trong thư mục 'frontend'
+    rootDir: ./frontend
+    # Cấu hình rewrite để các request /api trỏ về backend Node.js
+    routes:
+      - type: rewrite
+        source: /api/:path*
+        destination: https://backend-node.onrender.com/api/:path* # URL này sẽ được Render cung cấp
+    buildCommand: "echo 'No build command for static site'" # Không cần build gì cả
+    staticPublishPath: '.' # Thư mục chứa file tĩnh
