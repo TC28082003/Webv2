@@ -1,6 +1,13 @@
 // db.js
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+
+// Thêm log ngay tại nơi sử dụng các biến
+console.log("==== ENVIRONMENT VARIABLES (FROM db.js) ====");
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_USER:", process.env.DB_USER);
+console.log("DB_DATABASE:", process.env.DB_DATABASE);
+console.log("DB_PASSWORD is set:", !!process.env.DB_PASSWORD); // Kiểm tra sự tồn tại của password
+console.log("==========================================");
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -8,9 +15,10 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     waitForConnections: true,
-    connectionLimit: 10, // Adjust as needed
+    connectionLimit: 10,
     queueLimit: 0
 });
+
 
 // Optional: Test connection on startup
 pool.getConnection()
