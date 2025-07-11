@@ -1,9 +1,8 @@
-# render.yaml (Corrected Syntax and Logic)
+# render.yaml (Final Version - Corrected)
 
 databases:
-  - name: postgres-db # Sử dụng một tên nhất quán và rõ ràng
+  - name: postgres-db
     plan: free
-    # databaseName và user có thể bỏ qua, Render sẽ tự tạo và inject
 
 services:
   # --- Dịch vụ Frontend (Static Site) ---
@@ -29,16 +28,11 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: postgres-db # Tên phải khớp với khối 'databases'
+          name: postgres-db
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
-      # Thêm FRONTEND_URL để xử lý CORS
-      - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: frontend
-          property: url
+      # BIẾN FRONTEND_URL SẼ ĐƯỢC THÊM THỦ CÔNG SAU
 
   # --- Dịch vụ Backend Python ---
   - name: backend-python
@@ -51,11 +45,15 @@ services:
 
   # --- Job khởi tạo Database ---
   - name: db-init-job
-    type: worker # Phải ngang hàng với các services khác
+    type: job # Job là loại đúng cho tác vụ chạy một lần
+    # Chúng ta cần chỉ định một môi trường có psql
+    # Môi trường 'image' với postgres là một lựa chọn
+    image:
+      url: postgres:16-alpine # Sử dụng một image postgres nhẹ có psql
     rootDir: ./backend
-    startCommand: "psql $DATABASE_URL -f init.sql"
+    startCommand: "psql $$DATABASE_URL -f init.sql"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: postgres-db # Tên phải khớp với khối 'databases'
+          name: postgres-db
           property: connectionString
