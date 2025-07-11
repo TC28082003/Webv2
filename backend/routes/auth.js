@@ -2,9 +2,8 @@
 
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt =require('jsonwebtoken');
-const pool = require('../db'); // Database connection pool
-require('dotenv').config();
+const jwt = require('jsonwebtoken');
+const pool = require('../db');
 
 const router = express.Router();
 const saltRounds = 10;
@@ -20,10 +19,8 @@ router.post('/register', async (req, res) => {
         return res.status(400).json({ message: "Password must be at least 6 characters long." });
     }
 
-    let client;
+    const client = await pool.connect(); // Lấy một client từ pool cho transaction
     try {
-        client = await pool.connect(); // Lấy một client từ pool
-
         // Kiểm tra người dùng đã tồn tại chưa
         const { rows: existingUsers } = await client.query('SELECT id FROM users WHERE email = $1', [email]);
         if (existingUsers.length > 0) {
@@ -53,11 +50,11 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ message: "User registered successfully. You can now log in." });
 
     } catch (error) {
-        if (client) await client.query('ROLLBACK'); // Hoàn tác nếu có lỗi
+        await client.query('ROLLBACK'); // Hoàn tác nếu có lỗi
         console.error("Registration Error:", error);
         res.status(500).json({ message: "An internal server error occurred during registration." });
     } finally {
-        if (client) client.release(); // Luôn giải phóng client về pool
+        client.release(); // Luôn giải phóng client về pool
     }
 });
 
@@ -109,7 +106,6 @@ router.get('/status', authenticateToken, async (req, res) => {
         const { rows: users } = await pool.query('SELECT id, email FROM users WHERE id = $1', [req.userId]);
 
         if (users.length === 0) {
-            console.warn(`Auth Status Check: User ID ${req.userId} from valid token not found in DB.`);
             return res.status(404).json({ message: "User associated with token not found." });
         }
         
