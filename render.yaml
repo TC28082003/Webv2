@@ -30,7 +30,7 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
-      -key: PYTHON_SERVICE_URL
+      - key: PYTHON_SERVICE_URL
         fromService:
           type: web
           name: backend-python
