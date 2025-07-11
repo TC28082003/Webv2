@@ -29,7 +29,7 @@ services:
     rootDir: ./backend
     buildCommand: npm install
     startCommand: node server.js
- envVars:
+    envVars:
       # Chỉ cần một biến này là đủ cho PostgreSQL
       - key: DATABASE_URL
         fromDatabase:
