@@ -30,7 +30,11 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
-      # FRONTEND_URL sẽ được thêm thủ công
+      -key: PYTHON_SERVICE_URL
+        fromService:
+          type: web
+          name: backend-python
+          property: hostport
 
   # --- Dịch vụ Backend Python ---
   - name: backend-python
