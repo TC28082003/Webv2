@@ -51,7 +51,7 @@ services:
 
   # --- Job khởi tạo Database ---
   - name: db-init-job
-    type: job # Phải ngang hàng với các services khác
+    type: worker # Phải ngang hàng với các services khác
     rootDir: ./backend
     startCommand: "psql $DATABASE_URL -f init.sql"
     envVars:
