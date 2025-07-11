@@ -1,12 +1,17 @@
 // server.js
-console.log("==== ENVIRONMENT VARIABLES ====");
+
+
+require('dotenv').config();
+
+console.log("==== ENVIRONMENT VARIABLES (FROM server.js) ====");
 console.log("DB_HOST:", process.env.DB_HOST);
 console.log("DB_USER:", process.env.DB_USER);
 console.log("DB_DATABASE:", process.env.DB_DATABASE);
-console.log("===============================");
+console.log("==============================================");
+
+
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const userDataRoutes = require('./routes/userData');
