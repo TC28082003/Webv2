@@ -1,5 +1,10 @@
 # render.yaml (Final Version for your exact file structure)
-
+databases:
+  - name: mysql-db
+    databaseName: navigation_app_db
+    user: db_user
+    plan: free
+    
 services:
   # --- Dịch vụ Frontend (Static Site) ---
   - name: frontend
@@ -22,13 +27,13 @@ services:
     env: node
     plan: free
     rootDir: ./backend
-    buildCommand: "npm install"
-    startCommand: "node server.js"
+    buildCommand: npm install
+    startCommand: node server.js
     envVars:
       - key: DB_HOST
         fromDatabase:
-          name: mysql-db       # Tên của database service
-          property: host       # Lấy thuộc tính 'host'
+          name: mysql-db
+          property: host
       - key: DB_USER
         fromDatabase:
           name: mysql-db
@@ -44,7 +49,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-  # --- Dịch vụ Backend Python ---
+ # --- Dịch vụ Backend Python (Docker) ---
   - name: backend-python
     type: web
     env: docker
@@ -52,9 +57,3 @@ services:
     rootDir: ./prediction_service
     dockerfilePath: ./Dockerfile
     healthCheckPath: /
-
-databases:
-  - name: mysql-db
-    databaseName: navigation_app_db
-    user: db_user
-    plan: free
