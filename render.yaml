@@ -1,7 +1,16 @@
-# render.yaml (Final Corrected Version - Alternative Structure)
+# render.yaml (Final Final Version)
 
-# Khai báo các dịch vụ (backend) sẽ được tạo
 services:
+  # --- Dịch vụ Frontend (Static Site) ---
+  # Đặt lên đầu tiên để dễ theo dõi
+  - name: frontend
+    type: static # Đây là cú pháp đúng
+    rootDir: ./frontend
+    routes:
+      - type: rewrite
+        source: /api/:path*
+        destination: ${backend-node.url}/api/:path*
+
   # --- Dịch vụ Backend Node.js ---
   - name: backend-node
     type: web
@@ -12,13 +21,21 @@ services:
     startCommand: "node server.js"
     envVars:
       - key: DB_HOST
-        fromDatabase: { name: mysql-db, property: host }
+        fromDatabase:
+          name: mysql-db
+          property: host
       - key: DB_USER
-        fromDatabase: { name: mysql-db, property: user }
+        fromDatabase:
+          name: mysql-db
+          property: user
       - key: DB_PASSWORD
-        fromDatabase: { name: mysql-db, property: password }
+        fromDatabase:
+          name: mysql-db
+          property: password
       - key: DB_DATABASE
-        fromDatabase: { name: mysql-db, property: database }
+        fromDatabase:
+          name: mysql-db
+          property: database
       - key: JWT_SECRET
         generateValue: true
 
@@ -31,16 +48,6 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /
 
-# Khai báo các Static Sites
-staticSites:
-  - name: frontend
-    rootDir: ./frontend
-    routes:
-      - type: rewrite
-        source: /api/:path*
-        destination: ${backend-node.url}/api/:path*
-
-# Khai báo cơ sở dữ liệu
 databases:
   - name: mysql-db
     databaseName: navigation_app_db
