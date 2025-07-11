@@ -16,7 +16,7 @@ services:
         source: /api/:path*
         destination: ${backend-node.url}/api/:path*
 
-  # --- Dịch vụ Backend Node.js ---
+ # --- Dịch vụ Backend Node.js ---
   - name: backend-node
     type: web
     env: node
@@ -27,8 +27,8 @@ services:
     envVars:
       - key: DB_HOST
         fromDatabase:
-          name: mysql-db
-          property: host
+          name: mysql-db       # Tên của database service
+          property: host       # Lấy thuộc tính 'host'
       - key: DB_USER
         fromDatabase:
           name: mysql-db
