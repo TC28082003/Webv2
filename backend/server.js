@@ -1,7 +1,7 @@
 // server.js
 
 
-require('dotenv').config();
+// require('dotenv').config();
 
 console.log("==== ENVIRONMENT VARIABLES (FROM server.js) ====");
 console.log("DB_HOST:", process.env.DB_HOST);
