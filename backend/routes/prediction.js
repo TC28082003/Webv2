@@ -6,7 +6,7 @@ const authenticateToken = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Address of the Python service, Docker Compose will resolve 'prediction_service'
-const PREDICTION_SERVICE_URL = 'http://prediction_service:5001/predict';
+const PREDICTION_SERVICE_URL = `${process.env.PYTHON_SERVICE_URL || 'http://localhost:5001'}/predict`; 
 
 router.post('/', authenticateToken, async (req, res) => {
     const { data_transform, target_column, potential_features } = req.body;
